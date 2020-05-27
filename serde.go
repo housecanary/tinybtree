@@ -43,7 +43,9 @@ func Load(f io.Reader, loadValue func (r io.Reader) (interface{}, error)) (tr BT
 	fmt.Printf("Read length\n")
 	tr.length = int(word)
 
-	if tr.root, err = load(f, loadValue, tr.height); err != nil {
+	// this buffer will be re-used or replaced for a larger one, as needed
+	buf := make([]byte, 0)
+	if tr.root, buf, err = load(f, buf, loadValue, tr.height); err != nil {
 		return
 	}
 
@@ -86,9 +88,11 @@ func (n *node) save(
 
 func load(
 	f io.Reader,
+	oldBuf []byte,
 	loadValue func (r io.Reader) (interface{}, error),
 	height int,
-) (n *node, err error) {
+) (n *node, buf []byte, err error) {
+	buf = oldBuf[:]
 	n = &node{}
 	var short uint8
 	if err = binary.Read(f, binary.BigEndian, &short); err != nil {
@@ -98,7 +102,6 @@ func load(
 	n.numItems = int(short)
 	var key string
 	var value interface{}
-	buf := make([]byte, 0)
 	// values on this node
 	for i := 0; i < n.numItems; i++ {
 		if key, buf, err = loadString(f, buf); err != nil {
@@ -114,7 +117,7 @@ func load(
 	// children
 	if height > 0 {
 		for i := 0; i <= n.numItems; i++ {
-			if n.children[i], err = load(f, loadValue, height-1); err != nil {
+			if n.children[i], buf, err = load(f, buf, loadValue, height-1); err != nil {
 				return
 			}
 		}
