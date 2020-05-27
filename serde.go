@@ -28,7 +28,10 @@ func (tr *BTree) Save(f io.Writer, saveValue func (w io.Writer, value interface{
 	return
 }
 
-func Load(f io.Reader, loadValue func (r io.Reader) (interface{}, error)) (tr BTree, err error) {
+func Load(
+	f io.Reader,
+	loadValue func (r io.Reader, obuf []byte) (interface{}, []byte, error),
+) (tr BTree, err error) {
 	var word uint64
 
 	if err = binary.Read(f, binary.BigEndian, &word); err != nil {
@@ -89,7 +92,7 @@ func (n *node) save(
 func load(
 	f io.Reader,
 	oldBuf []byte,
-	loadValue func (r io.Reader) (interface{}, error),
+	loadValue func (r io.Reader, obuf []byte) (interface{}, []byte, error),
 	height int,
 ) (n *node, buf []byte, err error) {
 	buf = oldBuf[:]
@@ -108,7 +111,7 @@ func load(
 			return
 		}
 		fmt.Printf("Read key %v\n", key)
-		if value, err = loadValue(f); err != nil {
+		if value, buf, err = loadValue(f, buf); err != nil {
 			return
 		}
 		fmt.Printf("Read value for key %v: %v\n", key, value)

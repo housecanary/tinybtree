@@ -36,9 +36,9 @@ func itemSaver(w io.Writer, value interface{}) (err error) {
 
 var parseOpts = &geojson.ParseOptions{}
 
-func itemLoader(r io.Reader) (value interface{}, err error) {
+func itemLoader(r io.Reader, obuf []byte) (value interface{}, buf []byte, err error) {
+	buf = obuf[:]
 	var item itemT
-	buf := make([]byte, 0)
 	if item.id, buf, err = loadString(r, buf); err != nil {
 		return
 	}
@@ -54,7 +54,7 @@ func itemLoader(r io.Reader) (value interface{}, err error) {
 	if item.obj, err = geojson.Parse(jsonString, parseOpts); err != nil {
 		return
 	}
-	return item, nil
+	return item, buf,nil
 }
 
 func TestSaveLoadBTree256(t *testing.T) {
