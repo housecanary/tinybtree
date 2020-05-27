@@ -38,7 +38,8 @@ var parseOpts = &geojson.ParseOptions{}
 
 func itemLoader(r io.Reader) (value interface{}, err error) {
 	var item itemT
-	if item.id, err = loadString(r); err != nil {
+	buf := make([]byte, 0)
+	if item.id, buf, err = loadString(r, buf); err != nil {
 		return
 	}
 	var word uint64
@@ -47,7 +48,7 @@ func itemLoader(r io.Reader) (value interface{}, err error) {
 	}
 	item.fieldValuesSlot = fieldValuesSlot(word)
 	var jsonString string
-	if jsonString, err = loadString(r); err != nil {
+	if jsonString, buf, err = loadString(r, buf); err != nil {
 		return
 	}
 	if item.obj, err = geojson.Parse(jsonString, parseOpts); err != nil {

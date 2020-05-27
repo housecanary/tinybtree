@@ -98,10 +98,10 @@ func load(
 	n.numItems = int(short)
 	var key string
 	var value interface{}
+	buf := make([]byte, 0)
 	// values on this node
 	for i := 0; i < n.numItems; i++ {
-		// item := n.items[i]
-		if key, err = loadString(f); err != nil {
+		if key, buf, err = loadString(f, buf); err != nil {
 			return
 		}
 		fmt.Printf("Read key %v\n", key)
@@ -144,14 +144,21 @@ func saveString(w io.Writer, s string) (err error) {
 	return
 }
 
-func loadString(r io.Reader) (s string, err error) {
+func ensureLen(slc []byte, sz int) []byte {
+	if cap(slc) < sz {
+		return make([]byte, sz)
+	}
+	return slc[:sz]
+}
+
+func loadString(r io.Reader, buf []byte) (s string, newBuf []byte, err error) {
 	var numBytes uint64
 	if err = binary.Read(r, binary.BigEndian, &numBytes); err != nil {
 		return
 	}
-	b := make([]byte, numBytes)
-	if _, err = r.Read(b); err != nil {
+	newBuf = ensureLen(buf, int(numBytes))
+	if _, err = r.Read(newBuf); err != nil {
 		return
 	}
-	return string(b),nil
+	return string(newBuf), newBuf,nil
 }
