@@ -75,7 +75,7 @@ func (n *node) save(
 		if err = saveValue(f, item.value); err != nil {
 			return
 		}
-		fmt.Printf("Wrote value for key %v\n", item.key)
+		fmt.Printf("Wrote value for key %v: %v\n", item.key, item.value)
 	}
 	// children
 	if height > 0 {
