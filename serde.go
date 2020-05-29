@@ -2,7 +2,6 @@ package tinybtree
 
 import (
 	"encoding/binary"
-	"fmt"
 	"io"
 	"reflect"
 	"unsafe"
@@ -12,18 +11,15 @@ func (tr *BTree) Save(f io.Writer, saveValue func (w io.Writer, value interface{
 	if err = binary.Write(f, binary.BigEndian, uint64(tr.height)); err != nil {
 		return
 	}
-	fmt.Printf("Wrote height\n")
 
 	if err = binary.Write(f, binary.BigEndian, uint64(tr.length)); err != nil {
 		return
 	}
-	fmt.Printf("Wrote length\n")
 
 	gotTree := tr.root != nil
 	if err = binary.Write(f, binary.BigEndian, gotTree); err != nil {
 		return
 	}
-	fmt.Printf("Wrote gotTree\n")
 
 	if gotTree {
 		if err = tr.root.save(f, saveValue, tr.height); err != nil {
@@ -43,20 +39,17 @@ func Load(
 	if err = binary.Read(f, binary.BigEndian, &word); err != nil {
 		return
 	}
-	fmt.Printf("Read height\n")
 	tr.height = int(word)
 
 	if err = binary.Read(f, binary.BigEndian, &word); err != nil {
 		return
 	}
-	fmt.Printf("Read length\n")
 	tr.length = int(word)
 
 	var gotTree bool
 	if err = binary.Read(f, binary.BigEndian, &gotTree); err != nil {
 		return
 	}
-	fmt.Printf("Read gotTree: %v\n", gotTree)
 
 	if gotTree {
 		// this buffer will be re-used or replaced for a larger one, as needed
@@ -74,22 +67,18 @@ func (n *node) save(
 	saveValue func (w io.Writer, value interface{}) error,
 	height int,
 ) (err error) {
-	fmt.Printf("numItems: %v\n", n.numItems)
 	if err = binary.Write(f, binary.BigEndian, uint8(n.numItems)); err != nil {
 		return
 	}
-	fmt.Printf("Wrote numItems\n")
 	// values on this node
 	for i := 0; i < n.numItems; i++ {
 		item := n.items[i]
 		if err = saveString(f, item.key); err != nil {
 			return
 		}
-		fmt.Printf("Wrote key %v\n", item.key)
 		if err = saveValue(f, item.value); err != nil {
 			return
 		}
-		fmt.Printf("Wrote value for key %v: %v\n", item.key, item.value)
 	}
 	// children
 	if height > 0 {
@@ -115,7 +104,6 @@ func load(
 	if err = binary.Read(f, binary.BigEndian, &short); err != nil {
 		return
 	}
-	fmt.Printf("Read numItems: %d\n", short)
 	n.numItems = int(short)
 	var key string
 	var value interface{}
@@ -124,11 +112,9 @@ func load(
 		if key, buf, err = loadString(f, buf); err != nil {
 			return
 		}
-		fmt.Printf("Read key %v\n", key)
 		if value, buf, err = loadValue(f, buf); err != nil {
 			return
 		}
-		fmt.Printf("Read value for key %v: %v\n", key, value)
 		n.items[i] = item{key, value}
 	}
 	// children
