@@ -177,7 +177,7 @@ func loadString(r io.Reader, buf []byte) (s string, newBuf []byte, err error) {
 		return
 	}
 	newBuf = ensureLen(buf, int(numBytes))
-	if _, err = r.Read(newBuf); err != nil {
+	if _, err = io.ReadFull(r, newBuf); err != nil {
 		return
 	}
 	return string(newBuf), newBuf,nil
